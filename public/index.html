@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pulse Chat</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="bg-mesh" aria-hidden="true"></div>
+    <div class="bg-grid" aria-hidden="true"></div>
+
+    <div id="auth-screen">
+      <div class="auth-card glass">
+        <div class="auth-logo">
+          <div class="logo-glow">◈</div>
+          <h1>Pulse Chat</h1>
+          <p>Квантовый мессенджер нового поколения</p>
+        </div>
+        <div class="auth-tabs">
+          <button type="button" id="tab-login" class="active">Вход</button>
+          <button type="button" id="tab-register">Регистрация</button>
+        </div>
+        <form id="auth-form">
+          <div class="field" id="field-display" style="display: none">
+            <label for="displayName">Отображаемое имя</label>
+            <input id="displayName" type="text" placeholder="Как вас видят другие" maxlength="64" />
+          </div>
+          <div class="field">
+            <label for="username">Имя пользователя</label>
+            <input id="username" type="text" placeholder="ivan_petrov" required autocomplete="username" />
+          </div>
+          <div class="field">
+            <label for="password">Пароль</label>
+            <input id="password" type="password" placeholder="••••••" required autocomplete="current-password" />
+          </div>
+          <button type="submit" class="btn-primary" id="auth-submit">Войти</button>
+        </form>
+        <p class="auth-error" id="auth-error"></p>
+      </div>
+    </div>
+
+    <div id="app" class="hidden">
+      <aside class="sidebar glass" id="sidebar">
+        <header class="sidebar-header">
+          <div class="me profile-trigger" id="open-profile" title="Профиль">
+            <div class="avatar sm" id="my-avatar"></div>
+            <span class="name" id="my-name"></span>
+          </div>
+          <button type="button" class="icon-btn" id="btn-notif-settings" title="Уведомления">🔔</button>
+          <button type="button" class="icon-btn" id="btn-logout" title="Выйти">⎋</button>
+        </header>
+        <div id="notif-banner" class="notif-banner hidden">
+          <span>Включите уведомления, чтобы не пропустить сообщения</span>
+          <button type="button" class="btn-mini" id="btn-enable-notif">Включить</button>
+        </div>
+        <div class="search-box">
+          <input type="search" id="search-users" placeholder="Поиск пользователей..." />
+        </div>
+        <div class="chat-list" id="chat-list"></div>
+        <div class="chat-list hidden" id="search-results"></div>
+      </aside>
+
+      <main class="main" id="main-panel">
+        <div class="empty-state" id="empty-state">
+          <div class="logo-big">◈</div>
+          <p>Выберите чат или найдите пользователя</p>
+          <span class="empty-hint">Сообщения приходят мгновенно — даже в другой вкладке</span>
+        </div>
+
+        <div id="chat-view" class="hidden chat-view-wrap">
+          <header class="chat-header glass">
+            <div class="avatar sm" id="chat-avatar"></div>
+            <div class="meta">
+              <h2 id="chat-title">—</h2>
+              <p id="chat-subtitle"></p>
+            </div>
+            <div class="chat-call-actions hidden" id="chat-call-actions">
+              <button type="button" class="icon-btn call-action" id="btn-call-audio" title="Аудиозвонок">📞</button>
+              <button type="button" class="icon-btn call-action" id="btn-call-video" title="Видеозвонок">📹</button>
+            </div>
+          </header>
+          <div class="messages" id="messages"></div>
+          <div id="reply-bar" class="reply-bar hidden">
+            <div class="reply-bar-inner">
+              <span class="reply-bar-title">Ответ</span>
+              <strong id="reply-bar-name"></strong>
+              <p id="reply-bar-text"></p>
+            </div>
+            <button type="button" class="icon-btn" id="reply-bar-cancel" title="Отмена">✕</button>
+          </div>
+          <div id="recording-bar" class="recording-bar hidden">
+            <span class="rec-dot"></span>
+            <span id="recording-timer">0:00</span>
+            <span class="rec-hint">Запись… Нажмите ✓ чтобы отправить</span>
+            <button type="button" class="icon-btn rec-cancel" id="btn-rec-cancel" title="Отмена">✕</button>
+            <button type="button" class="icon-btn rec-send" id="btn-rec-send" title="Отправить">✓</button>
+          </div>
+          <form class="composer glass" id="composer-form">
+            <button type="button" class="voice-btn" id="btn-voice" title="Голосовое сообщение">🎤</button>
+            <textarea id="message-input" rows="1" placeholder="Сообщение..." maxlength="4000"></textarea>
+            <button type="submit" class="send-btn" title="Отправить">
+              <span>➤</span>
+            </button>
+          </form>
+        </div>
+      </main>
+    </div>
+
+    <div class="modal-overlay hidden" id="modal-notif">
+      <div class="modal glass">
+        <div class="modal-header">
+          <h3>Уведомления</h3>
+          <button type="button" class="icon-btn" id="modal-notif-close">✕</button>
+        </div>
+        <div class="modal-body notif-settings">
+          <label class="toggle-row">
+            <span>Звук при новом сообщении</span>
+            <input type="checkbox" id="pref-sound" checked />
+          </label>
+          <label class="toggle-row">
+            <span>Всплывающие уведомления Windows</span>
+            <input type="checkbox" id="pref-desktop" checked />
+          </label>
+          <label class="toggle-row">
+            <span>Тосты внутри приложения</span>
+            <input type="checkbox" id="pref-toast" checked />
+          </label>
+          <p class="notif-status" id="notif-permission-status"></p>
+          <button type="button" class="btn-primary" id="btn-request-notif">Разрешить в браузере</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay hidden" id="modal-profile">
+      <div class="modal glass">
+        <div class="modal-header">
+          <h3>Профиль</h3>
+          <button type="button" class="icon-btn" id="modal-profile-close">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="profile-modal-head">
+            <div class="avatar" id="profile-avatar-preview"></div>
+            <p class="profile-username-preview" id="profile-username-preview">@username</p>
+          </div>
+          <div class="field">
+            <label for="profile-displayName">Отображаемое имя</label>
+            <input id="profile-displayName" type="text" maxlength="64" placeholder="Ваш ник" />
+          </div>
+          <div class="field">
+            <label for="profile-username">Username</label>
+            <input id="profile-username" type="text" maxlength="32" placeholder="ivan_petrov" />
+            <span class="field-hint">Только a-z, 0-9 и _</span>
+          </div>
+          <p class="profile-error" id="profile-error"></p>
+          <button type="button" class="btn-primary" id="btn-save-profile">Сохранить</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="call-overlay" class="call-overlay hidden">
+      <div class="call-panel glass">
+        <div class="call-avatar-ring" id="call-single-avatar">
+          <div class="avatar" id="call-overlay-avatar"></div>
+        </div>
+        <div id="call-participants" class="call-participants hidden"></div>
+        <h2 id="call-overlay-name">—</h2>
+        <p id="call-overlay-status">Вызов…</p>
+        <div id="call-audio-options" class="call-audio-options">
+          <label class="call-test-mode call-noise-mode">
+            <input type="checkbox" id="call-noise-pro" checked />
+            <span>Усиленное шумоподавление — эхо, клавиатура, фоновый шум</span>
+          </label>
+        </div>
+        <div id="call-test-options" class="call-test-options">
+          <label class="call-test-mode">
+            <input type="checkbox" id="call-listen-only" />
+            <span>Только слушать (2-й браузер — без микрофона)</span>
+          </label>
+          <label class="call-test-mode">
+            <input type="checkbox" id="call-hear-self" />
+            <span>Слышать свой микрофон (проверка, не собеседника)</span>
+          </label>
+        </div>
+        <p class="call-hint">В звонке вы слышите <strong>собеседника</strong>, не себя. Себя — только с галочкой выше.</p>
+        <button type="button" class="btn-mini hidden" id="btn-unlock-audio">🔊 Включить звук</button>
+        <p class="call-timer hidden" id="call-timer">00:00</p>
+        <audio id="call-local-monitor" class="sr-only"></audio>
+        <div class="call-video-wrap hidden" id="call-video-wrap">
+          <video id="call-remote-video" class="call-remote-video" autoplay playsinline></video>
+          <video id="call-local-video" class="call-local-video" autoplay playsinline muted></video>
+        </div>
+        <audio id="call-remote-audio" autoplay playsinline></audio>
+        <div class="call-actions-row" id="incoming-actions">
+          <button type="button" class="call-btn reject" id="btn-incoming-reject" title="Отклонить">✕</button>
+          <button type="button" class="call-btn accept" id="btn-incoming-accept" title="Принять">✓</button>
+        </div>
+        <div class="call-actions-row hidden" id="active-call-actions">
+          <button type="button" class="call-btn add" id="btn-call-add" title="Добавить участника">➕</button>
+          <button type="button" class="call-btn mute" id="btn-call-mute" title="Микрофон">🎤</button>
+          <button type="button" class="call-btn hangup" id="btn-call-hangup" title="Завершить">📵</button>
+        </div>
+        <button type="button" class="btn-primary hidden" id="btn-call-end">Завершить звонок</button>
+      </div>
+    </div>
+
+    <nav id="ctx-menu" class="ctx-menu hidden">
+      <button type="button" data-action="reply">↩️ Ответить</button>
+      <button type="button" data-action="forward">➡️ Переслать</button>
+      <button type="button" data-action="react">😀 Реакция</button>
+      <button type="button" data-action="delete" class="danger">🗑️ Удалить</button>
+    </nav>
+
+    <div id="reaction-picker" class="reaction-picker hidden">
+      <button type="button" data-emoji="👍">👍</button>
+      <button type="button" data-emoji="❤️">❤️</button>
+      <button type="button" data-emoji="😂">😂</button>
+      <button type="button" data-emoji="😮">😮</button>
+      <button type="button" data-emoji="😢">😢</button>
+      <button type="button" data-emoji="🔥">🔥</button>
+      <button type="button" data-emoji="👏">👏</button>
+    </div>
+
+    <div class="modal-overlay hidden" id="modal-forward">
+      <div class="modal glass">
+        <div class="modal-header">
+          <h3>Переслать в чат</h3>
+          <button type="button" class="icon-btn" id="modal-forward-close">✕</button>
+        </div>
+        <div class="modal-body">
+          <div id="forward-chat-list" class="forward-chat-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay hidden" id="modal-call-add">
+      <div class="modal glass">
+        <div class="modal-header">
+          <h3>Добавить в звонок</h3>
+          <button type="button" class="icon-btn" id="modal-call-add-close">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-hint">Пользователь получит входящий вызов</p>
+          <div id="call-add-list" class="forward-chat-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+
+    <script src="/messages-ui.js"></script>
+    <script src="/call-audio.js"></script>
+    <script src="/calls.js"></script>
+    <script src="/app.js"></script>
+    <script>
+      (function () {
+        const el = document.getElementById('call-noise-pro');
+        if (el && localStorage.getItem('pulse_noise_pro') === '0') el.checked = false;
+      })();
+    </script>
+  </body>
+</html>

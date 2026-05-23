@@ -1,0 +1,12 @@
+{
+  "name": "pulse-chat",
+  "version": "1.0.0",
+  "description": "Telegram-like messenger — zero dependencies, Node.js only",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
